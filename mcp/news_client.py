@@ -20,6 +20,7 @@ class NewsMCPClient:
             return self.parse_rss(response.text)
 
     def parse_rss(self, xml_data: str):
+        """Parse RSS XML response into article list."""
         root = ET.fromstring(xml_data)
         articles = []
 

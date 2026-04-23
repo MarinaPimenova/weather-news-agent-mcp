@@ -1,21 +1,17 @@
 import streamlit as st
 import asyncio
-from agent.orchestrator import AgentOrchestrator
 
-st.title("🌦️ Weather & News Agent")
+class AsyncAgent:
+    async def run(self):
+        # Replace this with your LLM integration logic
+        await asyncio.sleep(1)  # Simulating async work
+        return "Data from LLM"
 
-query = st.text_input("Ask something:")
+async def main():
+    agent = AsyncAgent()
+    result = await agent.run()
+    st.write(result)
 
-if query:
-    orchestrator = AgentOrchestrator()
-
-    result = asyncio.run(orchestrator.handle_query(query))
-
-    if "weather" in result:
-        st.subheader("Weather")
-        st.json(result["weather"])
-
-    if "news" in result:
-        st.subheader("News")
-        for article in result["news"]:
-            st.write(article["title"])
+if __name__ == '__main__':
+    st.title('Weather News Agent')
+    st.button('Run Agent', on_click=lambda: asyncio.run(main()))

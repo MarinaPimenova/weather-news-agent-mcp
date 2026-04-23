@@ -1,3 +1,9 @@
 streamlit
 httpx
 pydantic
+langchain
+langchain-openai
+langchain-anthropic
+python-dotenv
+geopy
+openai

@@ -1,4 +1,7 @@
-# services/news_service.py
+"""
+News Service - Bridges application logic to News MCP client.
+The MCP client (NewsMCPClient) encapsulates all HTTP communication.
+"""
 
 from mcp.news_client import NewsMCPClient
 

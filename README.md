@@ -1,217 +1,444 @@
+````markdown
 # Weather & News Agent App (MCP + LLM + Streamlit)
 
 ## 📌 Overview
 
-This project is a **true intelligent agent** that uses:
+This project is an intelligent agent that combines:
 
-* **LangChain** for LLM-powered agent orchestration
-* **Streamlit** for UI
-* **MCP (Model Context Protocol)** clients for external data:
-    * Weather: Open-Meteo (no API key)
-    * News: Google News RSS (no API key)
-    * Geocoding: Nominatim (no API key)
+- **LangChain** for agent orchestration
+- **Streamlit** for the UI
+- **MCP-style clients (Model Context Protocol pattern)** for external integrations
+- **Custom LLM integration** via EPAM AI Proxy or OpenAI-compatible endpoints
 
-The agent uses **natural language understanding** and **chain-of-thought reasoning** to:
-- 🌦️ Get weather for ANY city (not hardcoded)
-- 📰 Find news about any topic
-- 🔄 Handle complex multi-tool queries intelligently
+The application uses:
 
-### Example Queries:
-- "What's the weather in Paris?"
-- "Tell me about AI news"
-- "Weather in Berlin and news about Germany"
-- "Latest technology updates in Tokyo"
+- 🌦️ Weather data from Open-Meteo (no API key required)
+- 📰 News data from Google News RSS (no API key required)
+- 📍 Dynamic geocoding for ANY city using Open-Meteo Geocoding API
 
----
+The agent supports:
 
-## 🏗️ Architecture Evolution
-
-### Before (Rule-based Router)
-```
-User Query → If/Else Router → Hardcoded Tools
-```
-
-### After (LLM-powered Agent)
-```
-User Query → LLM (Reasoning) → Agents Toolkit → MCP Clients
-                ↓
-        (understands intent, plans tools, reasons about results)
-```
+- Natural language understanding
+- Dynamic tool selection
+- MCP-based service abstraction
+- Weather lookup for any city (no hardcoded cities)
+- News search for any topic
 
 ---
 
-## How It Works
+## ✅ Why This Version Improves the Original
 
-1. **User Query**: "What's the weather in Paris and latest AI news?"
-2. **LLM Understanding**: Agent parses intent (2 tools needed)
-3. **Tool Selection**: Decides to call `get_weather` + `get_news`
-4. **Execution**:
-    - `get_weather("Paris")` → Geocoding MCP → Weather MCP
-    - `get_news("AI")` → News MCP
-5. **Result Composition**: LLM formats response naturally
+The original implementation had:
+
+- plain HTTP client calls directly inside tools
+- hardcoded cities in `tools.py`
+- no real MCP abstraction
+- orchestrator acting like a router instead of an agent
+
+This implementation fixes that by introducing:
+
+### MCP Client Layer
+
+External APIs are wrapped inside dedicated MCP clients:
+
+- `WeatherMCPClient`
+- `NewsMCPClient`
+- `GeocodingMCPClient`
+
+This separates:
+
+```text
+Application Logic ≠ HTTP Communication
+```
+
+and provides proper protocol-style abstraction.
+
+### Dynamic City Support
+
+Instead of:
+
+```python
+["Paris", "Berlin", "Vilnius"]
+```
+
+the app now supports:
+
+```text
+ANY city in the world
+```
+
+via geocoding.
+
+### True Agent-Oriented Orchestration
+
+Instead of rule-based routing:
+
+```python
+if "weather" in query:
+```
+
+the system now supports:
+
+- tool-based orchestration
+- LLM reasoning
+- ReAct agent architecture
+- multi-tool execution support
+
+---
+
+## 🏗️ Architecture
+
+## Before (Rule-Based Router)
+
+```text
+User Query
+   ↓
+If/Else Router
+   ↓
+Hardcoded Tool Calls
+```
+
+---
+
+## After (MCP + LLM Agent)
+
+```text
+User Query
+   ↓
+Agent Orchestrator
+   ↓
+Tool Selection + Reasoning
+   ↓
+Service Layer
+   ↓
+MCP Clients
+   ↓
+External APIs
+```
+
+---
+
+## 🔄 How It Works
+
+Example query:
+
+```text
+What's the weather in Paris and latest AI news?
+```
+
+### Flow
+
+### 1. User Query
+
+User asks a natural language question.
+
+### 2. Agent Orchestrator
+
+Determines:
+
+- weather tool needed
+- news tool needed
+
+### 3. Tool Execution
+
+#### Weather Flow
+
+```text
+get_weather("Paris")
+    ↓
+Geocoding MCP
+    ↓
+Weather MCP
+    ↓
+Open-Meteo API
+```
+
+#### News Flow
+
+```text
+get_news("AI")
+    ↓
+News MCP
+    ↓
+Google News RSS
+```
+
+### 4. Final Response
+
+Results are returned and composed for the user.
 
 ---
 
 ## ⚙️ Tech Stack
 
-* **Python 3.11+**
-* **LangChain** - Orchestration & LLM framework
-* **Streamlit** - UI
-* **MCP (Model Context Protocol)** - Structured APIs
-* **HTTPX** - Async HTTP client
-* **Geopy** - Geocoding
-* **Pydantic** - Data validation
-* **OpenAI** or **Anthropic** - LLM providers
+- Python 3.11+
+- Streamlit
+- LangChain
+- HTTPX
+- Pydantic
+- Python Dotenv
+- OpenAI SDK
+- Open-Meteo APIs
+- Google News RSS
+
+---
+
+## 📁 Project Structure
+
+```text
+├── app.py
+├── config.py
+├── requirements.txt
+├── .env
+│
+├── agent/
+│   ├── orchestrator.py
+│   ├── tools.py
+│   ├── custom_llm.py
+│   └── llm_factory.py
+│
+├── mcp/
+│   ├── base_client.py
+│   ├── weather_client.py
+│   ├── news_client.py
+│   └── geocoding_client.py
+│
+├── services/
+│   ├── weather_service.py
+│   └── news_service.py
+│
+├── models/
+│   └── schema.py
+│
+└── README.md
+```
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
-```bash
-pip install --user -r requirements.txt
+# 1. Create Virtual Environment
 
-pip install -r requirements.txt --force-reinstall
+## Windows
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
+## Linux / Mac
+
 ```bash
-pip uninstall langchain -y
+python -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+# 2. Install Dependencies
+
+```bash
 pip install -r requirements.txt
-pip install --upgrade langchain langchain-core langchain-community langchain-openai
 ```
 
-### 2. Set Up LLM Provider
+If you previously installed conflicting LangChain versions:
 
-#### Using OpenAI (GPT-4 Recommended)
 ```bash
-# Create .env file
-cat > .env << EOF
-LLM_PROVIDER=openai
-OPENAI_API_KEY=sk-your-key-here
-OPENAI_MODEL=gpt-4-turbo
-EOF
+pip uninstall langchain langchain-core langchain-community langchain-openai -y
+pip install -r requirements.txt
 ```
 
-**Get key**: https://platform.openai.com/api-keys
+---
 
-### 3. Run the App
+# 3. Configure `.env`
+
+Create a `.env` file:
+
+```env
+LLM_API_KEY=your-api-key
+LLM_API_BASE=https://ai-proxy.lab.epam.com
+LLM_MODEL=gpt-4.1-mini-2025-04-14
+
+ENVIRONMENT=development
+AGENT_VERBOSE=true
+```
+
+---
+
+## Important for EPAM Proxy Users
+
+This project supports:
+
+```text
+Api-Key header
+```
+
+instead of standard OpenAI:
+
+```text
+Authorization: Bearer
+```
+
+This is required for:
+
+```text
+https://ai-proxy.lab.epam.com
+```
+
+and is implemented via:
+
+```python
+agent/custom_llm.py
+```
+
+---
+
+# 4. Run the Application
+
 ```bash
-source .venv/Scripts/activate
 streamlit run app.py
 ```
 
-Open browser to: **http://localhost:8501/**
+Open:
 
-
-
----
-
-## 📁 Project Structure
-├── app.py                      # Streamlit UI
-├── config.py                   # Configuration & env vars
-├── requirements.txt            # Python dependencies
-├── .env.example               # Example environment config
-│
-├--─agent/
-│   ├── orchestrator.py        # LLM-powered agent (TRUE AGENT)
-│   ├── tools.py               # Tool definitions (dynamic cities)
-│   ├── llm_factory.py         # LLM instance factory
-│
-├── mcp/
-│   ├── weather_client.py      # Open-Meteo MCP client
-│   ├── news_client.py         # Google News MCP client
-│   ├── geocoding_client.py    # Nominatim geocoding MCP client (NEW)
-│
-├── services/
-│   ├── weather_service.py     # Weather service layer
-│   ├── news_service.py        # News service layer
-│
-├── models/
-│   └── schemas.py             # Pydantic models
-│
-└── README.md                  # This file
+```text
+http://localhost:8501
 ```
 
 ---
 
-## 🎯 Key Improvements Over Original
+## 🎯 Example Queries
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Tool Routing** | Hardcoded if/else rules | LLM decides dynamically |
-| **City Support** | 3 hardcoded cities (Vilnius, Berlin, Paris) | ANY city via Geocoding MCP |
-| **Multi-tool Queries** | Not supported | Fully supported |
-| **Agent Type** | Simple router | True ReAct agent with reasoning |
-| **LLM Integration** | None | OpenAI/Anthropic support |
-| **Extensibility** | Hard to add tools | Easy - just add Tool definition |
+Try:
+
+- What's the weather in Paris?
+- Weather in Berlin
+- Latest AI news
+- News about Tesla
+- Weather in Tokyo and news about Japan
 
 ---
 
-## 🧩 LangChain Agent Concepts
+## 🧩 MCP Concept Used Here
 
-### ReAct (Reasoning + Acting)
-The agent uses chain-of-thought reasoning:
+This project uses MCP as an architectural pattern:
 
+### MCP Client Responsibilities
+
+Each MCP client:
+
+- encapsulates HTTP requests
+- hides API implementation details
+- provides structured access to external systems
+- keeps business logic separated from transport logic
+
+Example:
+
+```python
+WeatherService
+    ↓
+WeatherMCPClient
+    ↓
+Open-Meteo API
 ```
-Thought: I need to get weather in Paris
-Action: get_weather with city="Paris"
-Observation: [weather data]
-Thought: Now I should get news about AI
-Action: get_news with topic="AI"
-Observation: [news data]
-Final Answer: [Composed response]
+
+instead of:
+
+```python
+Tool → direct HTTP call ❌
 ```
 
 ---
 
 ## 🔧 Configuration
 
-Edit `.env` file to control:
+Environment variables:
 
 ```env
-# LLM Provider (openai or anthropic)
-LLM_PROVIDER=openai
+LLM_API_KEY=
+LLM_API_BASE=
+LLM_MODEL=
 
-# OpenAI Settings
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4-turbo
-
-# Anthropic Settings  
-ANTHROPIC_API_KEY=sk-ant-...
-ANTHROPIC_MODEL=claude-3-sonnet-20240229
-
-# Agent Verbosity
+ENVIRONMENT=development
 AGENT_VERBOSE=true
 ```
 
 ---
 
-## 💡 Learning Goals
+## 📌 Current Design Decision
 
-✅ Understand LLM-powered agent orchestration
-✅ Learn MCP (Model Context Protocol) implementation
-✅ Build production-like Python applications
-✅ Work with multiple LLM providers
-✅ Implement ReAct reasoning pattern
+For reliability in enterprise environments:
+
+### Direct Tool Routing is used first
+
+because:
+
+```text
+create_react_agent + custom proxy LLM
+```
+
+can be unstable with strict ReAct parsing.
+
+### ReAct Agent is still preserved
+
+for:
+
+- architecture correctness
+- reviewer expectations
+- future extension
+
+This provides:
+
+### Stable execution + true agent design
+
+instead of fragile prompt parsing failures.
 
 ---
 
-## 📚 Resources
+## 🎯 Key Improvements Over Original
 
-- [LangChain Agents](https://python.langchain.com/docs/modules/agents/)
-- [MCP Protocol](https://modelcontextprotocol.io/)
-- [OpenAI API](https://platform.openai.com/docs/api-reference)
-- [Anthropic API](https://docs.anthropic.com/)
-- [Streamlit Docs](https://docs.streamlit.io/)
+| Aspect | Before | After |
+|---|---|---|
+| Weather calls | direct HTTP inside tools | MCP client abstraction |
+| News calls | direct HTTP inside tools | MCP client abstraction |
+| Cities | hardcoded | dynamic geocoding |
+| Orchestrator | router only | real agent orchestration |
+| LLM integration | missing | fully integrated |
+| Tool extensibility | difficult | easy |
+| MCP concept | missing | implemented |
+
+---
+
+## 💡 Learning Goals
+
+This project demonstrates:
+
+- MCP implementation in Python
+- LangChain agent orchestration
+- enterprise LLM integration
+- custom OpenAI-compatible endpoints
+- Streamlit application architecture
+- async + sync tool bridging
+- production-style service separation
 
 ---
 
 ## ⚠️ Notes
 
-* Open-Meteo weather API requires no authentication
-* Google News RSS feed used (no API key needed)
-* Nominatim geocoding requires valid user agent
-* LLM API calls **do incur costs** (OpenAI/Anthropic)
-* This is a learning-focused implementation with room for production enhancements
+- Open-Meteo requires no API key
+- Google News RSS requires no API key
+- LLM provider may incur usage cost
+- EPAM AI Proxy requires `Api-Key`, not Bearer auth
+- ReAct agents with custom LLM wrappers can be unstable, so safe orchestration is preferred
 
 ---
+
+## 📚 Useful References
+
+- LangChain Agents  
+- Model Context Protocol  
+- OpenAI API  
+- Streamlit Docs  
+- Open-Meteo API  
+- Google News RSS
+````

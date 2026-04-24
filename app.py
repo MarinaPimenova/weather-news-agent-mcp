@@ -1,21 +1,23 @@
 import streamlit as st
 import asyncio
+from dotenv import load_dotenv
 from agent.orchestrator import AgentOrchestrator
 
-st.title("🌦️ Weather & News Agent")
+load_dotenv()
+
+st.title("Weather News Agent")
 
 query = st.text_input("Ask something:")
 
-if query:
-    orchestrator = AgentOrchestrator()
+if "agent" not in st.session_state:
+    st.session_state.agent = AgentOrchestrator()
 
-    result = asyncio.run(orchestrator.handle_query(query))
+if st.button("Run Agent") and query:
 
-    if "weather" in result:
-        st.subheader("Weather")
-        st.json(result["weather"])
+    async def run():
+        return await st.session_state.agent.handle_query(query)
 
-    if "news" in result:
-        st.subheader("News")
-        for article in result["news"]:
-            st.write(article["title"])
+    result = asyncio.run(run())
+
+    st.write("### Response")
+    st.json(result)

@@ -1,11 +1,12 @@
+from mcp.base_client import MCPClient
 import httpx
 import xml.etree.ElementTree as ET
 
 
-class NewsMCPClient:
+class NewsMCPClient(MCPClient):
     BASE_URL = "https://news.google.com/rss/search"
 
-    async def get_news(self, query: str):
+    async def execute(self, query: str):
         params = {
             "q": query,
             "hl": "en-US",
@@ -16,8 +17,11 @@ class NewsMCPClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(self.BASE_URL, params=params)
             response.raise_for_status()
+            return response.text
 
-            return self.parse_rss(response.text)
+    async def get_news(self, query: str):
+        xml_data = await self.execute(query)
+        return self.parse_rss(xml_data)
 
     def parse_rss(self, xml_data: str):
         root = ET.fromstring(xml_data)

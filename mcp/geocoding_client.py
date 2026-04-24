@@ -1,34 +1,11 @@
-"""
-Geocoding MCP Client - Converts city names to coordinates
-This MCP abstracts the conversion from natural language city names to latitude/longitude.
-Currently uses Open-Meteo's Geocoding API (free, no key required).
-"""
-
+from mcp.base_client import MCPClient
 import httpx
 
 
-class GeocodingMCPClient:
-    """
-    MCP Client for geocoding services.
-    Provides structured interface to convert city names to coordinates.
-    HTTP calls are encapsulated within this MCP layer.
-    """
+class GeocodingMCPClient(MCPClient):
     BASE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
-    async def get_coordinates(self, city: str) -> tuple:
-        """
-        Get latitude and longitude for a city name.
-
-        Args:
-            city: City name (e.g., "Paris", "New York", "Tokyo")
-
-        Returns:
-            Tuple of (latitude, longitude)
-
-        Raises:
-            ValueError: If city not found
-            Exception: If API call fails
-        """
+    async def execute(self, city: str):
         params = {
             "name": city,
             "count": 1,
@@ -39,13 +16,13 @@ class GeocodingMCPClient:
         async with httpx.AsyncClient() as client:
             response = await client.get(self.BASE_URL, params=params)
             response.raise_for_status()
-            data = response.json()
+            return response.json()
 
-            if not data.get("results"):
-                raise ValueError(f"City '{city}' not found")
+    async def get_coordinates(self, city: str):
+        data = await self.execute(city)
 
-            result = data["results"][0]
-            lat = result["latitude"]
-            lon = result["longitude"]
+        if not data.get("results"):
+            raise ValueError(f"City '{city}' not found")
 
-            return (lat, lon)
+        result = data["results"][0]
+        return result["latitude"], result["longitude"]

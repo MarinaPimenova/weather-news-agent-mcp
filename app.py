@@ -1,17 +1,23 @@
 import streamlit as st
 import asyncio
+from dotenv import load_dotenv
+from agent.orchestrator import AgentOrchestrator
 
-class AsyncAgent:
-    async def run(self):
-        # Replace this with your LLM integration logic
-        await asyncio.sleep(1)  # Simulating async work
-        return "Data from LLM"
+load_dotenv()
 
-async def main():
-    agent = AsyncAgent()
-    result = await agent.run()
-    st.write(result)
+st.title("Weather News Agent")
 
-if __name__ == '__main__':
-    st.title('Weather News Agent')
-    st.button('Run Agent', on_click=lambda: asyncio.run(main()))
+query = st.text_input("Ask something:")
+
+if "agent" not in st.session_state:
+    st.session_state.agent = AgentOrchestrator()
+
+if st.button("Run Agent") and query:
+
+    async def run():
+        return await st.session_state.agent.handle_query(query)
+
+    result = asyncio.run(run())
+
+    st.write("### Response")
+    st.json(result)

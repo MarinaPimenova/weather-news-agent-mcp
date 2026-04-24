@@ -70,6 +70,14 @@ User Query → LLM (Reasoning) → Agents Toolkit → MCP Clients
 ### 1. Install Dependencies
 ```bash
 pip install --user -r requirements.txt
+
+pip install -r requirements.txt --force-reinstall
+```
+
+```bash
+pip uninstall langchain -y
+pip install -r requirements.txt
+pip install --upgrade langchain langchain-core langchain-community langchain-openai
 ```
 
 ### 2. Set Up LLM Provider

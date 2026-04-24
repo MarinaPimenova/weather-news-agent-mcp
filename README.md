@@ -315,7 +315,7 @@ Try:
 - Weather in Berlin
 - Latest AI news
 - News about Tesla
-- Weather in Tokyo and news about Japan
+- Weather in Tokyo
 
 ---
 

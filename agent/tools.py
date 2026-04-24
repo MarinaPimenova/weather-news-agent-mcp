@@ -1,7 +1,4 @@
-"""
-Tool definitions for the LLM-based agent.
-These tools are exposed to the LangChain agent for dynamic invocation.
-"""
+import re
 
 from services.weather_service import WeatherService
 from services.news_service import NewsService
@@ -11,49 +8,103 @@ weather_service = WeatherService()
 news_service = NewsService()
 geocoding_client = GeocodingMCPClient()
 
+def normalize_llm_input(text: str) -> str:
+    """
+    Extract the most likely entity (city/topic) from LLM output.
+    Works for both weather and news tools.
+    """
+
+    if not text:
+        return ""
+
+    text = text.lower().strip()
+
+    # remove common question patterns
+    text = re.sub(r"what('s| is)?", "", text)
+    text = re.sub(r"weather in", "", text)
+    text = re.sub(r"news about", "", text)
+    text = re.sub(r"get", "", text)
+
+    # remove punctuation
+    text = re.sub(r"[?.,!]", " ", text)
+
+    # split multi-intent queries
+    parts = re.split(r"\band\b", text)
+
+    candidate = parts[0].strip()
+
+    # remove extra filler words
+    words = candidate.split()
+
+    # keep last meaningful tokens (cities/topics are usually short)
+    candidate = " ".join(words[-3:])
+
+    return candidate.strip().title()
 
 async def get_weather_tool(city: str):
     """
-    Get current weather for any city in the world.
-
-    Args:
-        city: City name (e.g., "Paris", "Tokyo", "New York")
-
-    Returns:
-        Dictionary with current weather data
+    MCP Weather Tool (pure execution layer)
     """
+
     try:
-        # Dynamic geocoding - supports ANY city, not hardcoded list
-        lat, lon = await geocoding_client.get_coordinates(city)
+        clean_city = normalize_llm_input(city)
+
+        if not clean_city:
+            return {
+                "error": "Empty city input",
+                "status": "error"
+            }
+
+        lat, lon = await geocoding_client.get_coordinates(clean_city)
+
         weather_data = await weather_service.get_weather_by_coords(lat, lon)
+
         return {
-            "city": city,
-            "coordinates": {"latitude": lat, "longitude": lon},
+            "city": clean_city,
+            "coordinates": {
+                "latitude": lat,
+                "longitude": lon
+            },
             "weather": weather_data,
             "status": "success"
         }
-    except ValueError as e:
-        return {"error": f"City not found: {city}", "status": "error"}
-    except Exception as e:
-        return {"error": f"Failed to fetch weather: {str(e)}", "status": "error"}
 
+    except ValueError:
+        return {
+            "error": f"City not found: {city}",
+            "status": "error"
+        }
+
+    except Exception as e:
+        return {
+            "error": f"Weather tool failed: {str(e)}",
+            "status": "error"
+        }
 
 async def get_news_tool(topic: str):
     """
-    Get latest news about a topic.
-
-    Args:
-        topic: Topic to search for (e.g., "AI", "Tesla", "climate change")
-
-    Returns:
-        List of news articles
+    MCP News Tool (pure execution layer)
     """
+
     try:
-        news_data = await news_service.get_news(topic)
+        clean_topic = normalize_llm_input(topic)
+
+        if not clean_topic:
+            return {
+                "error": "Empty topic input",
+                "status": "error"
+            }
+
+        news_data = await news_service.get_news(clean_topic)
+
         return {
-            "topic": topic,
+            "topic": clean_topic,
             "articles": news_data,
             "status": "success"
         }
+
     except Exception as e:
-        return {"error": f"Failed to fetch news: {str(e)}", "status": "error"}
+        return {
+            "error": f"News tool failed: {str(e)}",
+            "status": "error"
+        }

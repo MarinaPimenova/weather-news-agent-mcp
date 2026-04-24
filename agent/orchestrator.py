@@ -42,20 +42,24 @@ class AgentOrchestrator:
                 name="get_weather",
                 func=self._run_tool_sync(get_weather_tool),
                 description="""
-Use this tool to get current weather for any city.
+Get weather for a city.
 
-Input must be ONLY the city name.
+RULES:
+- Input must be ONLY a city name
+- NO questions
+- NO extra words
 
 Examples:
 Paris
-Berlin
 Tokyo
+Berlin
 New York
 
-Returns:
-temperature, wind speed, weather conditions
-"""
-            ),
+Wrong:
+what's the weather in Paris
+weather in Paris?
+Weather in Tokyo and news about Japan
+"""            ),
             Tool(
                 name="get_news",
                 func=self._run_tool_sync(get_news_tool),
@@ -77,24 +81,31 @@ latest articles with title and link
 
         # Local prompt (no hub.pull)
         prompt = PromptTemplate.from_template("""
-Answer the following questions as best you can.
+You are a strict tool-using agent.
 
-You have access to the following tools:
+You MUST follow tool rules exactly.
 
+TOOLS:
 {tools}
 
-Use the following format:
+RULES:
+- If you use get_weather → input MUST be ONLY a city name
+- If you use get_news → input MUST be ONLY a topic
+- NEVER include full sentences in Action Input
+- NEVER include punctuation
 
-Question: the input question
-Thought: think about what to do
-Action: the action to take, should be one of [{tool_names}]
-Action Input: the input to the action
-Observation: the result of the action
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+FORMAT:
+Question: {input}
+Thought: reason step by step
+Action: one of [{tool_names}]
+Action Input: ONLY clean input
+Observation: result
+Final Answer: response
+
+Begin.
 
 Question: {input}
-Thought:{agent_scratchpad}
+{agent_scratchpad}
 """)
 
         # ReAct agent (kept for architecture correctness)

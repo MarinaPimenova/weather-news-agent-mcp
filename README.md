@@ -7,7 +7,7 @@ This project is an intelligent agent that combines:
 - **LangChain** for agent orchestration
 - **Streamlit** for the UI
 - **MCP-style clients (Model Context Protocol pattern)** for external integrations
-- **Custom LLM integration** via EPAM AI Proxy or OpenAI-compatible endpoints
+- **Custom LLM integration** via OpenAI-compatible endpoints
 
 The application uses:
 

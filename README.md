@@ -1,4 +1,3 @@
-````markdown
 # Weather & News Agent App (MCP + LLM + Streamlit)
 
 ## 📌 Overview
@@ -25,17 +24,6 @@ The agent supports:
 - News search for any topic
 
 ---
-
-## ✅ Why This Version Improves the Original
-
-The original implementation had:
-
-- plain HTTP client calls directly inside tools
-- hardcoded cities in `tools.py`
-- no real MCP abstraction
-- orchestrator acting like a router instead of an agent
-
-This implementation fixes that by introducing:
 
 ### MCP Client Layer
 
@@ -88,19 +76,7 @@ the system now supports:
 
 ## 🏗️ Architecture
 
-## Before (Rule-Based Router)
-
-```text
-User Query
-   ↓
-If/Else Router
-   ↓
-Hardcoded Tool Calls
-```
-
----
-
-## After (MCP + LLM Agent)
+## MCP + LLM Agent
 
 ```text
 User Query
@@ -118,7 +94,7 @@ External APIs
 
 ---
 
-## 🔄 How It Works
+## How It Works
 
 Example query:
 
@@ -342,11 +318,6 @@ WeatherMCPClient
 Open-Meteo API
 ```
 
-instead of:
-
-```python
-Tool → direct HTTP call ❌
-```
 
 ---
 
@@ -428,7 +399,7 @@ This project demonstrates:
 - Open-Meteo requires no API key
 - Google News RSS requires no API key
 - LLM provider may incur usage cost
-- EPAM AI Proxy requires `Api-Key`, not Bearer auth
+- AI Proxy requires `Api-Key`, not Bearer auth
 - ReAct agents with custom LLM wrappers can be unstable, so safe orchestration is preferred
 
 ---
@@ -441,4 +412,3 @@ This project demonstrates:
 - Streamlit Docs  
 - Open-Meteo API  
 - Google News RSS
-````
